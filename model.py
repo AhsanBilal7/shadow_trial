@@ -1264,10 +1264,10 @@ class ShadowFormer(nn.Module):
         # Bottleneck
         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
         # print("conv3: ",conv3.shape)
-        # W = int(math.sqrt(L))
         # ---------------------------------------------
-        # print(conv3.shape)
-        conv3 =self.output_proj2(conv3, img_size=(int(math.sqrt(conv3.shape[1])), int(math.sqrt(conv3.shape[1]))))
+        temp_img_size = int(np.sqrt(conv3.shape[1]))
+        # print(temp_img_size)
+        conv3 =self.output_proj2(conv3, img_size=(temp_img_size,temp_img_size))
         # print(conv3.shape)
         conv3 = self.cbam(conv3)
         conv3 =self.input_proj1(conv3)
@@ -1293,7 +1293,6 @@ class ShadowFormer(nn.Module):
         y = self.output_proj(deconv2, img_size = self.img_size) + x
         # print("output: ", y.shape)
         return y
-
 
 if __name__ == "__main__":
     import torch
