@@ -1,11 +1,10 @@
 #!/bin/bash
 #
-#SBATCH --partition=debug           # Partition with GPU resources
-#SBATCH --gres=gpu:2              # Request 1 GPU
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=16G   # Memory allocation
+#SBATCH --partition=disc
+#SBATCH --nodelist=c851
+#SBATCH --mem=15G
+#SBATCH --cpus-per-task=10
+#SBATCH --gpus-per-node=2
 #SBATCH --output=out_shadow_former.txt
 #SBATCH --error=error_shadow_former.txt
 #SBATCH --time=05:10:00
