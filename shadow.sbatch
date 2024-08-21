@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-#SBATCH --partition=disc
-#SBATCH --nodelist=c851
+#SBATCH --partition=debug_gpu
+#SBATCH --nodelist=c299
+#SBATCH --gres=gpu:kepler:2         # Request one A100 GPU           # Request 1 GPU
 #SBATCH --mem=15G
 #SBATCH --cpus-per-task=10
 #SBATCH --gpus-per-node=2
