@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --partition=gpu           # Partition with GPU resources
+#SBATCH --partition=debug           # Partition with GPU resources
 #SBATCH --gres=gpu:2              # Request 1 GPU
 #SBATCH --ntasks=1                # Number of tasks
 #SBATCH --cpus-per-task=10         # Number of CPU cores per task
