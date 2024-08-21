@@ -7,7 +7,7 @@
 #SBATCH --mem=15G                  # Memory allocation
 #SBATCH --output=out_shadow_former.txt
 #SBATCH --error=error_shadow_former.txt
-#SBATCH --time=48:10:00
+#SBATCH --time=24:10:00
 nvidia-smi
 python train.py  --win_size 8 --train_ps 256 --batch_size 16
 
