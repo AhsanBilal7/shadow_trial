@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --partition=normal         # Partition with GPU resources
+#SBATCH --partition=gpu         # Partition with GPU resources
 #SBATCH --nodelist=c735           # Specify the node
 #SBATCH --gres=gpu:A100:1         # Request one A100 GPU           # Request 1 GPU
 #SBATCH --ntasks=1
