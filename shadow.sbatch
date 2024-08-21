@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-#SBATCH --partition=debug_gpu
-#SBATCH --nodelist=c299
+#SBATCH --partition=gpu_kepler
+#SBATCH --nodelist=c301
 #SBATCH --gres=gpu:kepler:2     
 #SBATCH --mem=15G
 #SBATCH --cpus-per-task=10
