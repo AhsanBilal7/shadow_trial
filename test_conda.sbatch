@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --partition=debug           # Partition with GPU resources
+#SBATCH --partition=normal         # Partition with GPU resources
 #SBATCH --gres=gpu:2              # Request 1 GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
