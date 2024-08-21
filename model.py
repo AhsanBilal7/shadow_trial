@@ -1097,8 +1097,6 @@ class ShadowFormer(nn.Module):
         # Input/Output
         self.input_proj = InputProj(in_channel=4, out_channel=embed_dim, kernel_size=3, stride=1, act_layer=nn.LeakyReLU)
         self.output_proj = OutputProj(in_channel=2*embed_dim, out_channel=in_chans, kernel_size=3, stride=1)
-        self.input_proj1 = InputProj(in_channel=256, out_channel=256, kernel_size=3, stride=1, act_layer=nn.LeakyReLU)
-        self.output_proj2 = OutputProj(in_channel=256, out_channel=256, kernel_size=3, stride=1)
         # self.CAB = CAB(embed_dim, kernel_size=3, reduction=4, bias=False, act=nn.PReLU())
 
         # Encoder
@@ -1211,7 +1209,6 @@ class ShadowFormer(nn.Module):
                             use_checkpoint=use_checkpoint,
                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer,cab=True)
         self.apply(self._init_weights)
-        self.cbam = CBAMBlock(channel=256)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -1236,13 +1233,9 @@ class ShadowFormer(nn.Module):
     def forward(self, x, xm, mask=None):
         # Input  Projection
         xi = torch.cat((x, xm), dim=1)
-        # print("1",xi.shape)
         self.img_size = (x.shape[2], x.shape[3])
-        # print("xi: ", xi.shape)
         y = self.input_proj(xi)
-        # print("y",y.shape)
         y = self.pos_drop(y)
-        # print("1",y.shape)
 
         #Encoder
         conv0 = self.encoderlayer_0(y, xm, mask=mask, img_size = self.img_size)
@@ -1263,16 +1256,7 @@ class ShadowFormer(nn.Module):
 
         # Bottleneck
         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
-        # print("conv3: ",conv3.shape)
-        # ---------------------------------------------
-        temp_img_size = int(np.sqrt(conv3.shape[1]))
-        # print(temp_img_size)
-        conv3 =self.output_proj2(conv3, img_size=(temp_img_size,temp_img_size))
-        # print(conv3.shape)
-        conv3 = self.cbam(conv3)
-        conv3 =self.input_proj1(conv3)
-        # print(conv3.shape)
-        # ---------------------------------------------
+
         #Decoder
         up0 = self.upsample_0(conv3, img_size = self.img_size)
         self.img_size = (int(self.img_size[0] * 2), int(self.img_size[1] * 2))
@@ -1291,8 +1275,234 @@ class ShadowFormer(nn.Module):
 
         # Output Projection
         y = self.output_proj(deconv2, img_size = self.img_size) + x
-        # print("output: ", y.shape)
         return y
+# class ShadowFormer(nn.Module):
+#     def __init__(self, img_size=256, in_chans=3,
+#                  embed_dim=32, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
+#                  win_size=8, mlp_ratio=4., qkv_bias=True, qk_scale=None,
+#                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
+#                  norm_layer=nn.LayerNorm, patch_norm=True,
+#                  use_checkpoint=False, token_projection='linear', token_mlp='leff', se_layer=True,
+#                  dowsample=Downsample, upsample=Upsample, **kwargs):
+#         super().__init__()
+
+#         self.num_enc_layers = len(depths)//2
+#         self.num_dec_layers = len(depths)//2
+#         self.embed_dim = embed_dim
+#         self.patch_norm = patch_norm
+#         self.mlp_ratio = mlp_ratio
+#         self.token_projection = token_projection
+#         self.mlp = token_mlp
+#         self.win_size =win_size
+#         self.reso = img_size
+#         self.pos_drop = nn.Dropout(p=drop_rate)
+
+#         # stochastic depth
+#         enc_dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths[:self.num_enc_layers]))]
+#         conv_dpr = [drop_path_rate]*depths[4]
+#         dec_dpr = enc_dpr[::-1]
+
+#         # build layers
+
+#         # Input/Output
+#         self.input_proj = InputProj(in_channel=4, out_channel=embed_dim, kernel_size=3, stride=1, act_layer=nn.LeakyReLU)
+#         self.output_proj = OutputProj(in_channel=2*embed_dim, out_channel=in_chans, kernel_size=3, stride=1)
+#         self.input_proj1 = InputProj(in_channel=256, out_channel=256, kernel_size=3, stride=1, act_layer=nn.LeakyReLU)
+#         self.output_proj2 = OutputProj(in_channel=256, out_channel=256, kernel_size=3, stride=1)
+#         # self.CAB = CAB(embed_dim, kernel_size=3, reduction=4, bias=False, act=nn.PReLU())
+
+#         # Encoder
+#         self.encoderlayer_0 = BasicShadowFormer(dim=embed_dim,
+#                             output_dim=embed_dim,
+#                             input_resolution=(img_size,
+#                                                 img_size),
+#                             depth=depths[0],
+#                             num_heads=num_heads[0],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=enc_dpr[sum(depths[:0]):sum(depths[:1])],
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer,cab=True)
+#         self.dowsample_0 = dowsample(embed_dim, embed_dim*2)
+#         self.encoderlayer_1 = BasicShadowFormer(dim=embed_dim*2,
+#                             output_dim=embed_dim*2,
+#                             input_resolution=(img_size // 2,
+#                                                 img_size // 2),
+#                             depth=depths[1],
+#                             num_heads=num_heads[1],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=enc_dpr[sum(depths[:1]):sum(depths[:2])],
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer, cab=True)
+#         self.dowsample_1 = dowsample(embed_dim*2, embed_dim*4)
+#         self.encoderlayer_2 = BasicShadowFormer(dim=embed_dim*4,
+#                             output_dim=embed_dim*4,
+#                             input_resolution=(img_size // (2 ** 2),
+#                                                 img_size // (2 ** 2)),
+#                             depth=depths[2],
+#                             num_heads=num_heads[2],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=enc_dpr[sum(depths[:2]):sum(depths[:3])],
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer)
+#         self.dowsample_2 = dowsample(embed_dim*4, embed_dim*8)
+
+#         # Bottleneck
+#         self.conv = BasicShadowFormer(dim=embed_dim*8,
+#                             output_dim=embed_dim*8,
+#                             input_resolution=(img_size // (2 ** 3),
+#                                                 img_size // (2 ** 3)),
+#                             depth=depths[4],
+#                             num_heads=num_heads[4],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=conv_dpr,
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer)
+
+#         # # Decoder
+#         self.upsample_0 = upsample(embed_dim*8, embed_dim*4)
+#         self.decoderlayer_0 = BasicShadowFormer(dim=embed_dim*8,
+#                             output_dim=embed_dim*8,
+#                             input_resolution=(img_size // (2 ** 2),
+#                                                 img_size // (2 ** 2)),
+#                             depth=depths[6],
+#                             num_heads=num_heads[6],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=dec_dpr[sum(depths[5:6]):sum(depths[5:7])],
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer)
+#         self.upsample_1 = upsample(embed_dim*8, embed_dim*2)
+#         self.decoderlayer_1 = BasicShadowFormer(dim=embed_dim*4,
+#                             output_dim=embed_dim*4,
+#                             input_resolution=(img_size // 2,
+#                                                 img_size // 2),
+#                             depth=depths[7],
+#                             num_heads=num_heads[7],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=dec_dpr[sum(depths[5:7]):sum(depths[5:8])],
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer, cab=True)
+#         self.upsample_2 = upsample(embed_dim*4, embed_dim)
+#         self.decoderlayer_2 = BasicShadowFormer(dim=embed_dim*2,
+#                             output_dim=embed_dim*2,
+#                             input_resolution=(img_size,
+#                                                 img_size),
+#                             depth=depths[8],
+#                             num_heads=num_heads[8],
+#                             win_size=win_size,
+#                             mlp_ratio=self.mlp_ratio,
+#                             qkv_bias=qkv_bias, qk_scale=qk_scale,
+#                             drop=drop_rate, attn_drop=attn_drop_rate,
+#                             drop_path=dec_dpr[sum(depths[5:8]):sum(depths[5:9])],
+#                             norm_layer=norm_layer,
+#                             use_checkpoint=use_checkpoint,
+#                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer,cab=True)
+#         self.apply(self._init_weights)
+#         self.cbam = CBAMBlock(channel=256)
+
+#     def _init_weights(self, m):
+#         if isinstance(m, nn.Linear):
+#             trunc_normal_(m.weight, std=.02)
+#             if isinstance(m, nn.Linear) and m.bias is not None:
+#                 nn.init.constant_(m.bias, 0)
+#         elif isinstance(m, nn.LayerNorm):
+#             nn.init.constant_(m.bias, 0)
+#             nn.init.constant_(m.weight, 1.0)
+
+#     @torch.jit.ignore
+#     def no_weight_decay(self):
+#         return {'absolute_pos_embed'}
+
+#     @torch.jit.ignore
+#     def no_weight_decay_keywords(self):
+#         return {'relative_position_bias_table'}
+
+#     def extra_repr(self) -> str:
+#         return f"embed_dim={self.embed_dim}, token_projection={self.token_projection}, token_mlp={self.mlp},win_size={self.win_size}"
+
+#     def forward(self, x, xm, mask=None):
+#         # Input  Projection
+#         xi = torch.cat((x, xm), dim=1)
+#         # print("1",xi.shape)
+#         self.img_size = (x.shape[2], x.shape[3])
+#         # print("xi: ", xi.shape)
+#         y = self.input_proj(xi)
+#         # print("y",y.shape)
+#         y = self.pos_drop(y)
+#         # print("1",y.shape)
+
+#         #Encoder
+#         conv0 = self.encoderlayer_0(y, xm, mask=mask, img_size = self.img_size)
+#         pool0 = self.dowsample_0(conv0, img_size = self.img_size)
+#         m = nn.MaxPool2d(2)
+#         xm1 = m(xm)
+#         self.img_size = (int(self.img_size[0]/2), int(self.img_size[1]/2))
+#         conv1 = self.encoderlayer_1(pool0, xm1, mask=mask, img_size = self.img_size)
+#         pool1 = self.dowsample_1(conv1, img_size = self.img_size)
+#         m = nn.MaxPool2d(2)
+#         xm2 = m(xm1)
+#         self.img_size = (int(self.img_size[0] / 2), int(self.img_size[1] / 2))
+#         conv2 = self.encoderlayer_2(pool1, xm2, mask=mask, img_size = self.img_size)
+#         pool2 = self.dowsample_2(conv2, img_size = self.img_size)
+#         self.img_size = (int(self.img_size[0] / 2), int(self.img_size[1] / 2))
+#         m = nn.MaxPool2d(2)
+#         xm3 = m(xm2)
+
+#         # Bottleneck
+#         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
+#         # print("conv3: ",conv3.shape)
+#         # ---------------------------------------------
+#         temp_img_size = int(np.sqrt(conv3.shape[1]))
+#         # print(temp_img_size)
+#         conv3 =self.output_proj2(conv3, img_size=(temp_img_size,temp_img_size))
+#         # print(conv3.shape)
+#         conv3 = self.cbam(conv3)
+#         conv3 =self.input_proj1(conv3)
+#         # print(conv3.shape)
+#         # ---------------------------------------------
+#         #Decoder
+#         up0 = self.upsample_0(conv3, img_size = self.img_size)
+#         self.img_size = (int(self.img_size[0] * 2), int(self.img_size[1] * 2))
+#         deconv0 = torch.cat([up0,conv2],-1)
+#         deconv0 = self.decoderlayer_0(deconv0, xm2, mask=mask, img_size = self.img_size)
+
+#         up1 = self.upsample_1(deconv0, img_size = self.img_size)
+#         self.img_size = (int(self.img_size[0] * 2), int(self.img_size[1] * 2))
+#         deconv1 = torch.cat([up1,conv1],-1)
+#         deconv1 = self.decoderlayer_1(deconv1, xm1, mask=mask, img_size = self.img_size)
+
+#         up2 = self.upsample_2(deconv1, img_size = self.img_size)
+#         self.img_size = (int(self.img_size[0] * 2), int(self.img_size[1] * 2))
+#         deconv2 = torch.cat([up2,conv0],-1)
+#         deconv2 = self.decoderlayer_2(deconv2, xm, mask=mask, img_size = self.img_size)
+
+#         # Output Projection
+#         y = self.output_proj(deconv2, img_size = self.img_size) + x
+#         # print("output: ", y.shape)
+#         return y
 
 if __name__ == "__main__":
     import torch
