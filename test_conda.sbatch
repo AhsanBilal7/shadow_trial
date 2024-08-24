@@ -1,15 +1,13 @@
 #!/bin/bash
 #
-#SBATCH --partition=el9_gpu_test         # Partition with GPU resources
-#SBATCH --nodelist=c974           # Specify the node
-#SBATCH --gres=gpu:ada:2         # Request one A100 GPU           # Request 1 GPU
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --partition=gpu_a100
+#SBATCH --gres=gpu:1         # Request two  A100 GPUs           # Request 1 GPU
+#SBATCH --cpus-per-task=10
 #SBATCH --mem=16G   # Memory allocation
-#SBATCH --output=out_shadow_former.txt
-#SBATCH --error=error_shadow_former.txt
-#SBATCH --time=05:10:00
+#SBATCH --output=outaug24_shadow_former.txt
+#SBATCH --error=erraug24_shadow_former.txt
+#SBATCH --time=10:10:00
 
 nvidia-smi
-python train.py  --win_size 8 --train_ps 256 --batch_size 16 --train_dir /home/ahsan/shadow_trial/ISTD_Dataset/train --val_dir /home/ahsan/shadow_trial/ISTD_Dataset/test
+python train.py  --win_size 8 --train_ps 256 --batch_size 32 --train_dir /home/ahsan/shadow_trial/ISTD_Dataset/train --val_dir /home/ahsan/shadow_trial/ISTD_Dataset/$
 
