@@ -15,7 +15,7 @@ class Options():
         parser.add_argument('--train_workers', type=int, default=0, help='train_dataloader workers')
         parser.add_argument('--eval_workers', type=int, default=8, help='eval_dataloader workers')
         parser.add_argument('--dataset', type=str, default='ISTD')
-        parser.add_argument('--pretrain_weights', type=str, default='./log/ShadowFormer_istd/models/model_epoch_150.pth',
+        parser.add_argument('--pretrain_weights', type=str, default='./log/ShadowFormer_istd/models/model_epoch_350.pth',
                             help='path of pretrained_weights')
         parser.add_argument('--optimizer', type=str, default='adamw', help='optimizer for training')
         parser.add_argument('--lr_initial', type=float, default=0.0002, help='initial learning rate')

@@ -1065,7 +1065,6 @@ class BasicShadowFormer(nn.Module):
             flops += blk.flops()
         return flops
 
-
 # class ShadowFormer(nn.Module):
 #     def __init__(self, img_size=256, in_chans=3,
 #                  embed_dim=32, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
@@ -1253,7 +1252,6 @@ class BasicShadowFormer(nn.Module):
 #         self.img_size = (int(self.img_size[0] / 2), int(self.img_size[1] / 2))
 #         m = nn.MaxPool2d(2)
 #         xm3 = m(xm2)
-#         print(pool2.shape, xm3.shape,  self.img_size)
 
 #         # Bottleneck
 #         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
@@ -1515,8 +1513,8 @@ if __name__ == "__main__":
     # or imported already
 
     # Create a sample input tensor
-    input_tensor = torch.randn(1, 3, 320, 320)  # Batch size of 1, 3 channels (RGB), 256x256 image
-    mask_tensor =  torch.randn(1, 1, 320, 320)  # Corresponding mask tensor
+    input_tensor = torch.randn(1, 3, 480, 640)  # Batch size of 1, 3 channels (RGB), 256x256 image
+    mask_tensor =  torch.randn(1, 1, 480, 640)  # Corresponding mask tensor
 
     # Instantiate the model
     model = ShadowFormer()
