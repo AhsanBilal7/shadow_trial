@@ -9,6 +9,6 @@
 #SBATCH --time=10:10:00
 
 nvidia-smi
-python train.py --resume --win_size 8 --train_ps 320 --batch_size 128 --train_dir /home/ahsan/shadow_trial/ISTD_Dataset/train --val_dir /home/ahsan/shadow_trial/ISTD_Dataset/test --save_dir /home/ahsan/shadow_trial/log
+python train.py --resume --win_size 8 --train_ps 320 --batch_size 32 --train_dir /home/ahsan/shadow_trial/ISTD_Dataset/train --val_dir /home/ahsan/shadow_trial/ISTD_Dataset/test --save_dir /home/ahsan/shadow_trial/log
 
 
