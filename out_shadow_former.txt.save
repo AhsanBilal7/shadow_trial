@@ -1,0 +1,111 @@
+Thu Aug 22 10:16:34 2024       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.116.03   Driver Version: 525.116.03   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-PCI...  Off  | 00000000:81:00.0 Off |                  Off |
+| N/A   25C    P0    36W / 250W |   7684MiB / 40960MiB |      8%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+|   1  NVIDIA A100-PCI...  Off  | 00000000:E2:00.0 Off |                  Off |
+| N/A   25C    P0    34W / 250W |   8104MiB / 40960MiB |      9%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|    0   N/A  N/A    128654      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128655      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128656      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128657      C   gmx_mpi                           428MiB |
+|    0   N/A  N/A    128658      C   gmx_mpi                           428MiB |
+|    0   N/A  N/A    128659      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128660      C   gmx_mpi                           428MiB |
+|    0   N/A  N/A    128661      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128662      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128663      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128664      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128665      C   gmx_mpi                           428MiB |
+|    0   N/A  N/A    128666      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128667      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128668      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128669      C   gmx_mpi                           426MiB |
+|    0   N/A  N/A    128670      C   gmx_mpi                           428MiB |
+|    0   N/A  N/A    128673      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128654      C   gmx_mpi                           422MiB |
+|    1   N/A  N/A    128671      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128672      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128674      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128675      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128676      C   gmx_mpi                           428MiB |
+|    1   N/A  N/A    128677      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128678      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128679      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128680      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128681      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128682      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128683      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128684      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128685      C   gmx_mpi                           428MiB |
+|    1   N/A  N/A    128686      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128687      C   gmx_mpi                           426MiB |
+|    1   N/A  N/A    128688      C   gmx_mpi                           428MiB |
+|    1   N/A  N/A    128689      C   gmx_mpi                           426MiB |
++-----------------------------------------------------------------------------+
+/home/ahsan/shadow_trial
+Namespace(batch_size=16, nepoch=500, train_workers=0, eval_workers=8, dataset='ISTD', pretrain_weights='./log/ShadowFormer_istd/models/model_epoch_150.pth', optimizer='adamw', lr_initial=0.0002, weight_decay=0.02, gpu='2', arch='ShadowFormer', mode='shadow', save_dir='./log', save_images=False, env='_istd', checkpoint=50, norm_layer='nn.LayerNorm', embed_dim=32, win_size=8, token_projection='linear', token_mlp='leff', att_se=False, vit_dim=320, vit_depth=12, vit_nheads=8, vit_mlp_dim=512, vit_patch_size=16, global_skip=False, local_skip=False, vit_share=False, train_ps=256, resume=False, train_dir='/home/ahsan/shadow_trial/ISTD_Dataset/train', val_dir='/home/ahsan/shadow_trial/ISTD_Dataset/test', warmup=True, warmup_epochs=3)
+Now time is :  2024-08-22T10:16:57.774788
+You choose ShadowFormer...
+Using warmup and cosine strategy!
+===> Loading datasets
+/home/ahsan/shadow_trial/ISTD_Dataset/train
+/home/ahsan/shadow_trial/ISTD_Dataset/test
+Sizeof training set:  1330 , sizeof validation set:  540
+===> Start Epoch 1 End Epoch 500
+
+Evaluation after every 1000 Iterations !!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
