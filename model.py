@@ -1234,8 +1234,9 @@ class BasicShadowFormer(nn.Module):
 #         xi = torch.cat((x, xm), dim=1)
 #         self.img_size = (x.shape[2], x.shape[3])
 #         y = self.input_proj(xi)
+#         print("-------1--y",y.shape)
 #         y = self.pos_drop(y)
-
+#         print("-------2--y",y.shape)
 #         #Encoder
 #         conv0 = self.encoderlayer_0(y, xm, mask=mask, img_size = self.img_size)
 #         pool0 = self.dowsample_0(conv0, img_size = self.img_size)
@@ -1252,6 +1253,7 @@ class BasicShadowFormer(nn.Module):
 #         self.img_size = (int(self.img_size[0] / 2), int(self.img_size[1] / 2))
 #         m = nn.MaxPool2d(2)
 #         xm3 = m(xm2)
+#         print("---------xm3",xm3.shape)
 
 #         # Bottleneck
 #         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
@@ -1273,10 +1275,10 @@ class BasicShadowFormer(nn.Module):
 #         deconv2 = self.decoderlayer_2(deconv2, xm, mask=mask, img_size = self.img_size)
 
 #         # Output Projection
+#         temp = self.output_proj(deconv2, img_size = self.img_size)
+#         print("Temp: ", temp.shape)
 #         y = self.output_proj(deconv2, img_size = self.img_size) + x
 #         return y
-    
-
 class ShadowFormer(nn.Module):
     def __init__(self, img_size=256, in_chans=3,
                  embed_dim=32, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
@@ -1308,8 +1310,6 @@ class ShadowFormer(nn.Module):
         # Input/Output
         self.input_proj = InputProj(in_channel=4, out_channel=embed_dim, kernel_size=3, stride=1, act_layer=nn.LeakyReLU)
         self.output_proj = OutputProj(in_channel=2*embed_dim, out_channel=in_chans, kernel_size=3, stride=1)
-        self.output_proj2 = OutputProj(in_channel=embed_dim*8, out_channel=256, kernel_size=3, stride=1)
-        self.input_proj1 = InputProj(in_channel=256, out_channel=embed_dim*8, kernel_size=3, stride=1, act_layer=nn.LeakyReLU)
         # self.CAB = CAB(embed_dim, kernel_size=3, reduction=4, bias=False, act=nn.PReLU())
 
         # Encoder
@@ -1422,7 +1422,13 @@ class ShadowFormer(nn.Module):
                             use_checkpoint=use_checkpoint,
                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer,cab=True)
         self.apply(self._init_weights)
-        self.cbam = CBAMBlock(channel=256)
+        # Define MultiheadAttention
+        embedding_dim = 32  # Must match the embedding dimension of the input tensor
+        num_heads = 2  # Define the number of attention heads
+
+        self.multihead_attn = nn.MultiheadAttention(embed_dim=embedding_dim, num_heads=num_heads)
+        self.cbam = CBAMBlock(channel=3, reduction=1, kernel_size=3)
+
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -1447,14 +1453,25 @@ class ShadowFormer(nn.Module):
     def forward(self, x, xm, mask=None):
         # Input  Projection
         xi = torch.cat((x, xm), dim=1)
-        # print("1",xi.shape)
         self.img_size = (x.shape[2], x.shape[3])
-        # print("xi: ", xi.shape)
         y = self.input_proj(xi)
-        # print("y",y.shape)
-        y = self.pos_drop(y)
-        # print("1",y.shape)
+        # Reshape to (sequence_length, batch_size, embedding_dim)
+        # ------------------------
+        y = y.permute(1, 0, 2)
 
+
+        # Multihead attention expects query, key, and value
+        attn_output, attn_output_weights = self.multihead_attn(y, y, y)
+
+        # If needed, reshape the output back to (batch_size, sequence_length, embedding_dim)
+        y = attn_output.permute(1, 0, 2)
+
+        # attn_output is now of shape (1, 65536, 32)
+        # print("-------1--y",y.shape)
+        # ------------------------
+        y = self.pos_drop(y)
+
+        # print("-------2--y",y.shape)
         #Encoder
         conv0 = self.encoderlayer_0(y, xm, mask=mask, img_size = self.img_size)
         pool0 = self.dowsample_0(conv0, img_size = self.img_size)
@@ -1471,19 +1488,11 @@ class ShadowFormer(nn.Module):
         self.img_size = (int(self.img_size[0] / 2), int(self.img_size[1] / 2))
         m = nn.MaxPool2d(2)
         xm3 = m(xm2)
-        # print(pool2.shape, xm3.shape,  self.img_size)
+        # print("---------xm3",xm3.shape)
+
         # Bottleneck
         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
-        # print("conv3: ",conv3.shape)
-        # ---------------------------------------------
-        temp_img_size = int(np.sqrt(conv3.shape[1]))
-        # print(temp_img_size)
-        conv3 =self.output_proj2(conv3, img_size=(temp_img_size,temp_img_size))
-        # print(conv3.shape)
-        conv3 = self.cbam(conv3)
-        conv3 =self.input_proj1(conv3)
-        # print(conv3.shape)
-        # ---------------------------------------------
+
         #Decoder
         up0 = self.upsample_0(conv3, img_size = self.img_size)
         self.img_size = (int(self.img_size[0] * 2), int(self.img_size[1] * 2))
@@ -1499,11 +1508,18 @@ class ShadowFormer(nn.Module):
         self.img_size = (int(self.img_size[0] * 2), int(self.img_size[1] * 2))
         deconv2 = torch.cat([up2,conv0],-1)
         deconv2 = self.decoderlayer_2(deconv2, xm, mask=mask, img_size = self.img_size)
+        # print("deconv2: ", deconv2.shape)
 
         # Output Projection
-        y = self.output_proj(deconv2, img_size = self.img_size) + x
-        # print("output: ", y.shape)
+        temp = self.output_proj(deconv2, img_size = self.img_size)
+        # print("Temp: ", temp.shape)
+        temp = self.cbam(temp)
+        # print("Temp: ", temp.shape)
+        # y = self.output_proj(deconv2, img_size = self.img_size) + x
+        y = temp + x
         return y
+    
+
 
 if __name__ == "__main__":
     import torch
@@ -1513,8 +1529,8 @@ if __name__ == "__main__":
     # or imported already
 
     # Create a sample input tensor
-    input_tensor = torch.randn(1, 3, 480, 640)  # Batch size of 1, 3 channels (RGB), 256x256 image
-    mask_tensor =  torch.randn(1, 1, 480, 640)  # Corresponding mask tensor
+    input_tensor = torch.randn(1, 3, 256, 256)  # Batch size of 1, 3 channels (RGB), 256x256 image
+    mask_tensor =  torch.randn(1, 1, 256, 256)  # Corresponding mask tensor
 
     # Instantiate the model
     model = ShadowFormer()
