@@ -1651,15 +1651,12 @@ class ShadowFormer(nn.Module):
                             norm_layer=norm_layer,
                             use_checkpoint=use_checkpoint,
                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer,cab=True)
-        self.apply(self._init_weights)
-        # Define MultiheadAttention
-        embedding_dim = 32  # Must match the embedding dimension of the input tensor
-        num_heads = 2  # Define the number of attention heads
+        # embedding_dim = 32  # Must match the embedding dimension of the input tensor
+        # num_heads = 2  # Define the number of attention heads
 
-        self.multihead_attn = nn.MultiheadAttention(embed_dim=embedding_dim, num_heads=num_heads)
+        # self.multihead_attn = nn.MultiheadAttention(embed_dim=embedding_dim, num_heads=num_heads)
         self.cbam = CBAMBlock(channel=3, reduction=1, kernel_size=3)
-
-
+        self.cbam2 = CBAMBlock(channel=4, reduction=1, kernel_size=3)
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
             trunc_normal_(m.weight, std=.02)
@@ -1683,21 +1680,19 @@ class ShadowFormer(nn.Module):
     def forward(self, x, xm, mask=None):
         # Input  Projection
         xi = torch.cat((x, xm), dim=1)
+        # print(xi.shape)
+        xi = self.cbam2(xi)
+        # print(xi.shape)
         self.img_size = (x.shape[2], x.shape[3])
         y = self.input_proj(xi)
         # Reshape to (sequence_length, batch_size, embedding_dim)
         # ------------------------
-        y = y.permute(1, 0, 2)
+        # y = y.permute(1, 0, 2)
+        # # Multihead attention expects query, key, and value
+        # attn_output, attn_output_weights = self.multihead_attn(y, y, y)
 
-
-        # Multihead attention expects query, key, and value
-        attn_output, attn_output_weights = self.multihead_attn(y, y, y)
-
-        # If needed, reshape the output back to (batch_size, sequence_length, embedding_dim)
-        y = attn_output.permute(1, 0, 2)
-
-        # attn_output is now of shape (1, 65536, 32)
-        # print("-------1--y",y.shape)
+        # # If needed, reshape the output back to (batch_size, sequence_length, embedding_dim)
+        # y = attn_output.permute(1, 0, 2)
         # ------------------------
         y = self.pos_drop(y)
 
