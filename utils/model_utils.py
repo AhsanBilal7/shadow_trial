@@ -22,6 +22,9 @@ def save_checkpoint(model_dir, state, session):
 
 def load_checkpoint(model, weights):
     checkpoint = torch.load(weights)
+    print("===================")
+    print(weights)
+    print("===================")
     try:
         model.load_state_dict(checkpoint["state_dict"])
     except:
@@ -62,7 +65,7 @@ def get_arch(opt):
         model_restoration = UNet(dim=opt.embed_dim)
     elif arch == 'ShadowFormer':
         # model_restoration = ShadowFormer(img_size=opt.train_ps,embed_dim=opt.embed_dim,win_size=opt.win_size,token_projection=opt.token_projection,token_mlp=opt.token_mlp)
-        model_restoration = ShadowFormer()
+        model_restoration = ShadowFormer(img_size=320, win_size= 10)
     else:
         raise Exception("Arch error!")
 

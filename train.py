@@ -142,7 +142,8 @@ class CombinedLoss(nn.Module):
         combined = (1 - self.alpha) * bce + self.alpha * charbonnier
         # combined =  bce + charbonnier
         return combined
-criterion = CombinedLoss().cuda()
+# criterion = CombinedLoss().cuda()
+criterion = CharbonnierLoss().cuda()
 
 ######### DataLoader ###########
 print('===> Loading datasets')
