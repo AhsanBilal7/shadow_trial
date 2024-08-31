@@ -86,7 +86,10 @@ else:
 model_restoration = torch.nn.DataParallel (model_restoration)
 model_restoration.to('cuda')
 # model_restoration.cuda()
-
+total_parameters = sum(p.numel() for p in model.parameters())
+print("==================== Total Parameters =============================")
+print(total_parameters)
+print("=================================================")
 ######### Resume ###########
 if opt.resume:
     print("=========Resuming ...========")
