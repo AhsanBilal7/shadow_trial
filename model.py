@@ -1278,9 +1278,9 @@ class BasicShadowFormer(nn.Module):
 ################ v1
 class ShadowFormer(nn.Module):
     def __init__(self, img_size=320, in_chans=3,
-                 embed_dim=14, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
-                 win_size=8, mlp_ratio=4., qkv_bias=True, qk_scale=None,
-                 drop_rate=0., attn_drop_rate=0., drop_path_rate=0.2,
+                 embed_dim=16, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
+                 win_size=8, mlp_ratio=2., qkv_bias=True, qk_scale=None,
+                 drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
                  norm_layer=nn.LayerNorm, patch_norm=True,
                  use_checkpoint=False, token_projection='linear', token_mlp='leff', se_layer=True,
                  dowsample=Downsample, upsample=Upsample, **kwargs):
