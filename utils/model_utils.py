@@ -65,7 +65,7 @@ def get_arch(opt):
         model_restoration = UNet(dim=opt.embed_dim)
     elif arch == 'ShadowFormer':
         # model_restoration = ShadowFormer(img_size=opt.train_ps,embed_dim=opt.embed_dim,win_size=opt.win_size,token_projection=opt.token_projection,token_mlp=opt.token_mlp)
-        model_restoration = ShadowFormer(img_size=320, win_size= 10)
+        model_restoration = ShadowFormer()
     else:
         raise Exception("Arch error!")
 

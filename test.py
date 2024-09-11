@@ -63,13 +63,13 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, num_
 
 model_restoration = utils.get_arch(args)
 model_restoration = torch.nn.DataParallel(model_restoration)
-
-utils.load_checkpoint(model_restoration, args.weights)
-print("===>Testing using weights: ", args.weights)
 print("==================== Total Parameters ====================")
 total_parameters = sum(p.numel() for p in model_restoration.parameters())
 print("Total parameters: ", total_parameters)
 print("========================================")
+
+utils.load_checkpoint(model_restoration, args.weights)
+print("===>Testing using weights: ", args.weights)
 model_restoration.cuda()
 model_restoration.eval()
 

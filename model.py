@@ -1234,8 +1234,9 @@ class BasicShadowFormer(nn.Module):
 #         xi = torch.cat((x, xm), dim=1)
 #         self.img_size = (x.shape[2], x.shape[3])
 #         y = self.input_proj(xi)
+#         print("-------1--y",y.shape)
 #         y = self.pos_drop(y)
-
+#         print("-------2--y",y.shape)
 #         #Encoder
 #         conv0 = self.encoderlayer_0(y, xm, mask=mask, img_size = self.img_size)
 #         pool0 = self.dowsample_0(conv0, img_size = self.img_size)
@@ -1252,6 +1253,7 @@ class BasicShadowFormer(nn.Module):
 #         self.img_size = (int(self.img_size[0] / 2), int(self.img_size[1] / 2))
 #         m = nn.MaxPool2d(2)
 #         xm3 = m(xm2)
+#         print("---------xm3",xm3.shape)
 
 #         # Bottleneck
 #         conv3 = self.conv(pool2, xm3, mask=mask, img_size = self.img_size)
@@ -1273,13 +1275,15 @@ class BasicShadowFormer(nn.Module):
 #         deconv2 = self.decoderlayer_2(deconv2, xm, mask=mask, img_size = self.img_size)
 
 #         # Output Projection
+#         temp = self.output_proj(deconv2, img_size = self.img_size)
+#         print("Temp: ", temp.shape)
 #         y = self.output_proj(deconv2, img_size = self.img_size) + x
 #         return y
 ################ v1
 class ShadowFormer(nn.Module):
-    def __init__(self, img_size=320, in_chans=3,
-                 embed_dim=16, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
-                 win_size=8, mlp_ratio=2., qkv_bias=True, qk_scale=None,
+    def __init__(self, img_size=256, in_chans=3,
+                 embed_dim=32, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
+                 win_size=8, mlp_ratio=4., qkv_bias=True, qk_scale=None,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
                  norm_layer=nn.LayerNorm, patch_norm=True,
                  use_checkpoint=False, token_projection='linear', token_mlp='leff', se_layer=True,
@@ -1647,12 +1651,15 @@ class ShadowFormer(nn.Module):
 #                             norm_layer=norm_layer,
 #                             use_checkpoint=use_checkpoint,
 #                             token_projection=token_projection,token_mlp=token_mlp,se_layer=se_layer,cab=True)
-#         # embedding_dim = 32  # Must match the embedding dimension of the input tensor
-#         # num_heads = 2  # Define the number of attention heads
+#         self.apply(self._init_weights)
+#         # Define MultiheadAttention
+#         embedding_dim = 32  # Must match the embedding dimension of the input tensor
+#         num_heads = 2  # Define the number of attention heads
 
-#         # self.multihead_attn = nn.MultiheadAttention(embed_dim=embedding_dim, num_heads=num_heads)
+#         self.multihead_attn = nn.MultiheadAttention(embed_dim=embedding_dim, num_heads=num_heads)
 #         self.cbam = CBAMBlock(channel=3, reduction=1, kernel_size=3)
-#         self.cbam2 = CBAMBlock(channel=4, reduction=1, kernel_size=3)
+
+
 #     def _init_weights(self, m):
 #         if isinstance(m, nn.Linear):
 #             trunc_normal_(m.weight, std=.02)
@@ -1676,19 +1683,21 @@ class ShadowFormer(nn.Module):
 #     def forward(self, x, xm, mask=None):
 #         # Input  Projection
 #         xi = torch.cat((x, xm), dim=1)
-#         # print(xi.shape)
-#         xi = self.cbam2(xi)
-#         # print(xi.shape)
 #         self.img_size = (x.shape[2], x.shape[3])
 #         y = self.input_proj(xi)
 #         # Reshape to (sequence_length, batch_size, embedding_dim)
 #         # ------------------------
-#         # y = y.permute(1, 0, 2)
-#         # # Multihead attention expects query, key, and value
-#         # attn_output, attn_output_weights = self.multihead_attn(y, y, y)
+#         y = y.permute(1, 0, 2)
 
-#         # # If needed, reshape the output back to (batch_size, sequence_length, embedding_dim)
-#         # y = attn_output.permute(1, 0, 2)
+
+#         # Multihead attention expects query, key, and value
+#         attn_output, attn_output_weights = self.multihead_attn(y, y, y)
+
+#         # If needed, reshape the output back to (batch_size, sequence_length, embedding_dim)
+#         y = attn_output.permute(1, 0, 2)
+
+#         # attn_output is now of shape (1, 65536, 32)
+#         # print("-------1--y",y.shape)
 #         # ------------------------
 #         y = self.pos_drop(y)
 
@@ -1759,12 +1768,10 @@ if __name__ == "__main__":
 
     # Forward pass through the model
     total_parameters = sum(p.numel() for p in model.parameters())
-    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    params = sum([np.prod(p.size()) for p in model_parameters])
     output = model(input_tensor, mask_tensor)
 
 
     # Print input and output shapes
     print(f"Input shape: {input_tensor.shape}")
-    print(f"Total Parameters: {params}")
+    print(f"Total Parameters: {total_parameters}")
     print(f"Output shape: {output.shape}")
