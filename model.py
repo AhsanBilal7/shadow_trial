@@ -1699,7 +1699,7 @@ class ShadowFormer(nn.Module):
         # attn_output is now of shape (1, 65536, 32)
         # print("-------1--y",y.shape)
         # ------------------------
-        y = self.pos_drop(y)
+        # y = self.pos_drop(y)
 
         # print("-------2--y",y.shape)
         #Encoder
