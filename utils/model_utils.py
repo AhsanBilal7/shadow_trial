@@ -26,6 +26,7 @@ def load_checkpoint(model, weights):
     print(weights)
     print("===================")
     try:
+        # model.load_state_dict(checkpoint)
         model.load_state_dict(checkpoint["state_dict"])
     except:
         state_dict = checkpoint["state_dict"]

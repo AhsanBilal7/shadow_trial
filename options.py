@@ -10,7 +10,7 @@ class Options():
 
     def init(self, parser):
         # global settings
-        parser.add_argument('--batch_size', type=int, default=2, help='batch size')
+        parser.add_argument('--batch_size', type=int, default=4, help='batch size')
         parser.add_argument('--nepoch', type=int, default=500, help='training epochs')
         parser.add_argument('--train_workers', type=int, default=0, help='train_dataloader workers')
         parser.add_argument('--eval_workers', type=int, default=8, help='eval_dataloader workers')
@@ -49,10 +49,10 @@ class Options():
         parser.add_argument('--vit_share', action='store_true', default=False, help='share vit module')
 
         # args for training
-        parser.add_argument('--train_ps', type=int, default=320, help='patch size of training sample')
+        parser.add_argument('--train_ps', type=int, default=224, help='patch size of training sample')
         parser.add_argument('--resume', action='store_true', default=False)
-        parser.add_argument('--train_dir', type=str, default='/home/ahsan/ahsan_work/ShadowFormer/ISTD_Dataset/train', help='dir of train data')
-        parser.add_argument('--val_dir', type=str, default='/home/ahsan/ahsan_work/ShadowFormer/ISTD_Dataset/test', help='dir of train data')
+        parser.add_argument('--train_dir', type=str, default='./ISTD_Dataset/train', help='dir of train data')
+        parser.add_argument('--val_dir', type=str, default='./ISTD_Dataset/test', help='dir of train data')
         parser.add_argument('--warmup', action='store_true', default=True, help='warmup')
         parser.add_argument('--warmup_epochs', type=int, default=3, help='epochs for warmup')
 

@@ -27,7 +27,7 @@ parser.add_argument('--input_dir', default='./ISTD_Dataset/test/',
     type=str, help='Directory of validation images')
 parser.add_argument('--result_dir', default='./results/',
     type=str, help='Directory for results')
-parser.add_argument('--weights', default='./log/ShadowFormer_istd/models/model_epoch_350.pth',
+parser.add_argument('--weights', default='./log/ShadowFormer_istd/models/model_epoch_400.pth',
     type=str, help='Path to weights')
 parser.add_argument('--gpus', default='0', type=str, help='CUDA_VISIBLE_DEVICES')
 parser.add_argument('--arch', default='ShadowFormer', type=str, help='arch')
@@ -47,8 +47,8 @@ parser.add_argument('--vit_patch_size', type=int, default=16, help='vit patch_si
 parser.add_argument('--global_skip', action='store_true', default=False, help='global skip connection')
 parser.add_argument('--local_skip', action='store_true', default=False, help='local skip connection')
 parser.add_argument('--vit_share', action='store_true', default=False, help='share vit module')
-parser.add_argument('--train_ps', type=int, default=320, help='patch size of training sample')
-parser.add_argument('--tile', type=int, default=256, help='Tile size (e.g 720). None means testing on the original resolution image')
+parser.add_argument('--train_ps', type=int, default=256, help='patch size of training sample')
+parser.add_argument('--tile', type=int, default=None, help='Tile size (e.g 720). None means testing on the original resolution image')
 parser.add_argument('--tile_overlap', type=int, default=32, help='Overlapping of different tiles')
 args = parser.parse_args()
 
@@ -63,13 +63,10 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, num_
 
 model_restoration = utils.get_arch(args)
 model_restoration = torch.nn.DataParallel(model_restoration)
-print("==================== Total Parameters ====================")
-total_parameters = sum(p.numel() for p in model_restoration.parameters())
-print("Total parameters: ", total_parameters)
-print("========================================")
 
 utils.load_checkpoint(model_restoration, args.weights)
 print("===>Testing using weights: ", args.weights)
+
 model_restoration.cuda()
 model_restoration.eval()
 
@@ -101,6 +98,7 @@ with torch.no_grad():
         mask = F.pad(mask, (0, padw, 0, padh), 'reflect')
 
         if args.tile is None:
+            print(rgb_noisy.shape, mask.shape)
             rgb_restored = model_restoration(rgb_noisy, mask)
         else:
             # test the image tile by tile
@@ -124,12 +122,13 @@ with torch.no_grad():
 
                     E[..., h_idx:(h_idx + tile), w_idx:(w_idx + tile)].add_(out_patch)
                     W[..., h_idx:(h_idx + tile), w_idx:(w_idx + tile)].add_(out_patch_mask)
+            # restored = E.div_(W)
             rgb_restored = E.div_(W)
-            # rgb_restored = restored
+
         rgb_restored = torch.clamp(rgb_restored, 0, 1).cpu().numpy().squeeze().transpose((1, 2, 0))
 
         # Unpad the output
-        # rgb_restored = rgb_restored[:height, :width, :]
+        rgb_restored = rgb_restored[:height, :width, :]
 
         if args.cal_metrics:
             bm = torch.where(mask == 0, torch.zeros_like(mask), torch.ones_like(mask))  #binarize mask
@@ -138,9 +137,9 @@ with torch.no_grad():
             # calculate SSIM in gray space
             gray_restored = cv2.cvtColor(rgb_restored, cv2.COLOR_RGB2GRAY)
             gray_gt = cv2.cvtColor(rgb_gt, cv2.COLOR_RGB2GRAY)
-            ssim_val_rgb.append(ssim_loss(gray_restored, gray_gt, channel_axis=None, data_range = 1.0))
-            ssim_val_ns.append(ssim_loss(gray_restored * (1 - bm.squeeze()), gray_gt * (1 - bm.squeeze()), channel_axis=None, data_range = 1.0))
-            ssim_val_s.append(ssim_loss(gray_restored * bm.squeeze(), gray_gt * bm.squeeze(), channel_axis=None, data_range = 1.0))
+            ssim_val_rgb.append(ssim_loss(gray_restored, gray_gt, channel_axis=None))
+            ssim_val_ns.append(ssim_loss(gray_restored * (1 - bm.squeeze()), gray_gt * (1 - bm.squeeze()), channel_axis=None))
+            ssim_val_s.append(ssim_loss(gray_restored * bm.squeeze(), gray_gt * bm.squeeze(), channel_axis=None))
 
             psnr_val_rgb.append(psnr_loss(rgb_restored, rgb_gt))
             psnr_val_ns.append(psnr_loss(rgb_restored * (1 - bm), rgb_gt * (1 - bm)))

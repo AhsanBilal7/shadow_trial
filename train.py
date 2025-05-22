@@ -121,6 +121,7 @@ else:
     scheduler.step()
 
 
+
 ######### Loss ###########
 # criterion = CharbonnierLoss().cuda()
 class CombinedLoss(nn.Module):
@@ -152,8 +153,8 @@ criterion = CharbonnierLoss().cuda()
 print('===> Loading datasets')
 img_options_train = {'patch_size':opt.train_ps}
 train_dataset = get_training_data(opt.train_dir, img_options_train)
-train_loader = DataLoader(dataset=train_dataset, batch_size=opt.batch_size, shuffle=True, 
-        num_workers=opt.train_workers, pin_memory=True, drop_last=False)
+# train_loader = DataLoader(dataset=train_dataset, batch_size=opt.batch_size, shuffle=True, num_workers=opt.train_workers, pin_memory=True, drop_last=False)
+train_loader = DataLoader(dataset=train_dataset, batch_size=opt.batch_size, shuffle=True, pin_memory=True, drop_last=False)
 
 val_dataset = get_validation_data(opt.val_dir)
 val_loader = DataLoader(dataset=val_dataset, batch_size=1, shuffle=False,
@@ -168,7 +169,7 @@ print('===> Start Epoch {} End Epoch {}'.format(start_epoch,opt.nepoch))
 best_psnr = 0
 best_epoch = 0
 best_iter = 0
-eval_now = 1000
+eval_now = len(train_loader)
 print("\nEvaluation after every {} Iterations !!!\n".format(eval_now))
 
 loss_scaler = NativeScaler()
@@ -193,7 +194,7 @@ for epoch in range(start_epoch, opt.nepoch + 1):
             mask = data[2].cuda()
             if epoch > 5:
                 target, input_, mask = utils.MixUp_AUG().aug(target, input_, mask)
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast('cuda'):
                 restored = model_restoration(input_, mask)
                 restored = torch.clamp(restored,0,1)
                 loss = criterion(restored, target)
@@ -255,5 +256,10 @@ for epoch in range(start_epoch, opt.nepoch + 1):
                     'optimizer' : optimizer.state_dict()
                     }, os.path.join(model_dir,"model_epoch_{}.pth".format(epoch))) 
 print("Now time is : ",datetime.datetime.now().isoformat())
+
+
+
+
+
 
 

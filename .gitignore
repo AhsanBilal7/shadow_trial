@@ -3,3 +3,8 @@
 *.pth
 *__pycache__ 
 *.txt
+*.zip
+*.drawio
+*.pdf
+*.svg 
+*.bkp
