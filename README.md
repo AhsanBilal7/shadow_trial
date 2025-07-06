@@ -125,3 +125,12 @@ Bibtex:
 
 ## Contact
 If you have any questions, please contact lanqing001@e.ntu.edu.sg
+
+
+
+```
+nohup python train.py --warmup --win_size 8 --train_ps 256 > output.out 2>&1 &
+```
+```
+python test.py --cal_metrics --win_size 8 
+```

@@ -10,7 +10,7 @@ class Options():
 
     def init(self, parser):
         # global settings
-        parser.add_argument('--batch_size', type=int, default=4, help='batch size')
+        parser.add_argument('--batch_size', type=int, default=16, help='batch size')
         parser.add_argument('--nepoch', type=int, default=500, help='training epochs')
         parser.add_argument('--train_workers', type=int, default=0, help='train_dataloader workers')
         parser.add_argument('--eval_workers', type=int, default=8, help='eval_dataloader workers')
@@ -28,7 +28,7 @@ class Options():
         parser.add_argument('--save_dir', type=str, default='./log', help='save dir')
         parser.add_argument('--save_images', action='store_true', default=False)
         parser.add_argument('--env', type=str, default='_istd', help='env')
-        parser.add_argument('--checkpoint', type=int, default=50, help='checkpoint')
+        parser.add_argument('--checkpoint', type=int, default=100, help='checkpoint')
 
         # args for Uformer
         parser.add_argument('--norm_layer', type=str, default='nn.LayerNorm', help='normalize layer in transformer')
